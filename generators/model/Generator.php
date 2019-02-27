@@ -1,37 +1,19 @@
 <?php
-/**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
- */
 
 namespace mirocow\gentelella\generators\model;
 
-use Yii;
-use yii\base\InvalidConfigException;
-use yii\db\ActiveQuery;
-use yii\db\ActiveRecord;
-use yii\db\Connection;
 use yii\db\Schema;
-use yii\db\TableSchema;
-use yii\gii\CodeFile;
-use yii\helpers\Inflector;
 use yii\base\NotSupportedException;
 use yii\gii\generators\model\Generator as BaseGenerator;
 
 /**
- * This generator will generate one or multiple ActiveRecord classes for the specified database table.
- *
- * @author Qiang Xue <qiang.xue@gmail.com>
- * @since 2.0
+ * Генератор для pgsql, исправлена генерация rules для integer полей, проверка PK при генерации rules
  */
 class Generator extends BaseGenerator
 {
 
     /**
-     * Generates validation rules for the specified table.
-     * @param \yii\db\TableSchema $table the table schema
-     * @return array the generated validation rules
+     * {@inheritdoc}
      */
     public function generateRules($table)
     {
