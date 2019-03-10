@@ -2,8 +2,8 @@
 
 namespace mirocow\gentelella\generators\model;
 
-use yii\db\Schema;
 use yii\base\NotSupportedException;
+use yii\db\Schema;
 use yii\gii\generators\model\Generator as BaseGenerator;
 
 /**
@@ -23,33 +23,53 @@ class Generator extends BaseGenerator
             if ($column->autoIncrement || $column->isPrimaryKey) {
                 continue;
             }
-            if (!$column->allowNull) {
-                $types['required'][] = $column->name;
-            }
             switch ($column->type) {
                 case Schema::TYPE_SMALLINT:
                 case Schema::TYPE_INTEGER:
                 case Schema::TYPE_BIGINT:
                 case Schema::TYPE_TINYINT:
+                    if (!$column->allowNull) {
+                        $types['required'][] = $column->name;
+                    }
                     $types['integer'][] = $column->name;
                     break;
                 case Schema::TYPE_BOOLEAN:
+                    if (!$column->allowNull) {
+                        $types['required'][] = $column->name;
+                    }
                     $types['boolean'][] = $column->name;
                     break;
                 case Schema::TYPE_FLOAT:
                 case Schema::TYPE_DOUBLE:
                 case Schema::TYPE_DECIMAL:
                 case Schema::TYPE_MONEY:
+                    if (!$column->allowNull) {
+                        $types['required'][] = $column->name;
+                    }
                     $types['number'][] = $column->name;
                     break;
                 case Schema::TYPE_DATE:
                 case Schema::TYPE_TIME:
                 case Schema::TYPE_DATETIME:
                 case Schema::TYPE_TIMESTAMP:
+                    if($column->defaultValue <> 'CURRENT_TIMESTAMP'){
+                        if (!$column->allowNull) {
+                            $types['required'][] = $column->name;
+                        }
+                    } else {
+                        $types['safe'][] = $column->name;
+                    }
+                    break;
                 case Schema::TYPE_JSON:
+                    if (!$column->allowNull) {
+                        $types['required'][] = $column->name;
+                    }
                     $types['safe'][] = $column->name;
                     break;
                 default: // strings
+                    if (!$column->allowNull) {
+                        $types['required'][] = $column->name;
+                    }
                     if ($column->size > 0) {
                         $lengths[$column->size][] = $column->name;
                     } else {
