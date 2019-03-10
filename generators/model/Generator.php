@@ -56,9 +56,8 @@ class Generator extends BaseGenerator
                         if (!$column->allowNull) {
                             $types['required'][] = $column->name;
                         }
-                    } else {
-                        $types['safe'][] = $column->name;
                     }
+                    $types['safe'][] = $column->name;
                     break;
                 case Schema::TYPE_JSON:
                     if (!$column->allowNull) {
