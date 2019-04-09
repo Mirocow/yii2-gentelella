@@ -3,8 +3,10 @@
 namespace mirocow\gentelella\generators\model;
 
 use yii\base\NotSupportedException;
+use yii\db\ActiveRecord;
 use yii\db\Schema;
 use yii\gii\generators\model\Generator as BaseGenerator;
+use yii\helpers\Inflector;
 
 /**
  * Генератор для pgsql, исправлена генерация rules для integer полей, проверка PK при генерации rules
@@ -245,5 +247,63 @@ class Generator extends BaseGenerator
         }
 
         return $relations;
+    }
+
+    /**
+     * Generate a relation name for the specified table and a base name.
+     * @param array $relations the relations being generated currently.
+     * @param \yii\db\TableSchema $table the table schema
+     * @param string $key a base name that the relation name may be generated from
+     * @param bool $multiple whether this is a has-many relation
+     * @return string the relation name
+     */
+    protected function generateRelationName($relations, $table, $key, $multiple)
+    {
+        static $baseModel;
+        /* @var $baseModel \yii\db\ActiveRecord */
+        if ($baseModel === null) {
+            $baseClass = $this->baseClass;
+            $baseClassReflector = new \ReflectionClass($baseClass);
+            if ($baseClassReflector->isAbstract()) {
+                $baseClassWrapper =
+                    'namespace ' . __NAMESPACE__ . ';'.
+                    'class GiiBaseClassWrapper extends \\' . $baseClass . ' {' .
+                    'public static function tableName(){' .
+                    'return "' . addslashes($table->fullName) . '";' .
+                    '}' .
+                    '};' .
+                    'return new GiiBaseClassWrapper();';
+                $baseModel = eval($baseClassWrapper);
+            } else {
+                $baseModel = new $baseClass();
+            }
+            $baseModel->setAttributes([]);
+        }
+
+        if (!empty($key) && strcasecmp($key, 'id')) {
+            if (substr_compare($key, 'id', -2, 2, true) === 0) {
+                $key = rtrim(substr($key, 0, -2), '_');
+            } elseif (substr_compare($key, 'id', 0, 2, true) === 0) {
+                $key = ltrim(substr($key, 2, strlen($key)), '_');
+            }
+        }
+        if ($multiple) {
+            $key = Inflector::pluralize($key);
+        }
+        $name = $rawName = Inflector::id2camel($key, '_');
+        $i = 0;
+        if(get_class($baseModel) !== ActiveRecord::class) {
+            while ($baseModel->hasProperty(lcfirst($name))) {
+                $name = $rawName . ($i++);
+            }
+        }
+        while (isset($table->columns[lcfirst($name)])) {
+            $name = $rawName . ($i++);
+        }
+        while (isset($relations[$table->fullName][$name])) {
+            $name = $rawName . ($i++);
+        }
+
+        return $name;
     }
 }
